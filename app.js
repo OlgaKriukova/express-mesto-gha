@@ -2,8 +2,9 @@ const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const errorMessageNotFound = 'resource not found';
 
-const { PORT = 3000, BASE_PATH } = process.env;
+const { PORT = 3000} = process.env;
 
 const userRoutes = require("./routes/users");
 const cardRoutes = require("./routes/cards");
@@ -24,16 +25,18 @@ app.use((req, res, next) => {
   req.user = {
     _id: '648c6c8547fe7359010a4e19'
   };
-
   next();
 });
 
 app.use("/users", userRoutes);
 app.use("/cards", cardRoutes);
 
+app.use((req, res) => {
+  return res.status(404).send({message: errorMessageNotFound});
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
-  console.log('BASE_PATH = '+BASE_PATH);
 });
