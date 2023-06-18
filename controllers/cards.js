@@ -36,11 +36,14 @@ const createCard = (req, res) => {
 const delCard = (req, res) => {
   console.log("delCard req.params.cardId = "+req.params.cardId);
   Card.findByIdAndRemove(req.params.cardId)
-    .then(card => res.send(card))
+    .then(card => {
+      if (!card) return res.status(404).send({message: errorMessageNotFound});
+      return res.send(card);
+    })
     .catch((err) => {
       console.log("delCard error: "+err.name+' - '+err.message);
       if (err.name === "CastError") {
-        return res.status(404).send({message: errorMessageWrongId});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });
