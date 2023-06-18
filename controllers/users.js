@@ -1,10 +1,8 @@
 const User = require("../models/user");
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
-const errorMessageWrongDataCreate = 'Переданы некорректные данные при создании пользователя';
-const errorMessageWrongDataUpdate = 'Переданы некорректные данные при обновлении профиля';
-const errorMessageWrongDataUpdateAvatar = 'Переданы некорректные данные при обновлении аватара';
-const errorMessageWrongId = 'Пользователь по указанному _id не найден';
+const errorMessageWrongData = 'Переданы некорректные данные';
+const errorMessageNotFound = 'Пользователь по указанному _id не найден';
 
 const getUsers = (req, res) => {
    console.log("getUsers user._id = "+req.user._id);
@@ -17,15 +15,16 @@ const getUsers = (req, res) => {
 }
 
 const getUserById = (req, res) => {
-  console.log("getUserById user._id = "+req.user._id);
-  User.findById(req.user._id)
+  console.log("getUserById req.params.userId = "+req.params.userId);
+  User.findById(req.params.userId)
     .then((user) => {
+      if (!user) return res.status(404).send({message: errorMessageNotFound});
       return res.status(200).send(user);
     })
     .catch((err) => {
       console.log("getUserById error: "+err.name+' - '+err.message);
       if (err.name === "CastError") {
-        return res.status(404).send({message: errorMessageWrongId});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });
@@ -40,7 +39,7 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.log("createCard error: "+err.name+' - '+err.message);
       if (err.name === "ValidationError") {
-        return res.status(400).send({message: errorMessageWrongDataCreate});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });
@@ -59,7 +58,7 @@ const updateUser = (req, res) => {
     .catch((err) => {
       console.log("updateUser error: "+err.name+' - '+err.message);
       if (err.name === "ValidationError") {
-        return res.status(400).send({message: errorMessageWrongDataUpdate});
+        return res.status(400).send({message: errorMessageWrongData});
         //message: `${Object.values(err.errors).map((err) => err.message).join(", ")}`
       }
       return res.status(500).send({message: errorMessageGeneralError});
@@ -83,7 +82,7 @@ const updateUserAvatar = (req, res) => {
     .catch((err) => {
       console.log("updateUserAvatar error: "+err.name+' - '+err.message);
       if (err.name === "ValidationError") {
-        return res.status(400).send({message: errorMessageWrongDataUpdateAvatar});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });

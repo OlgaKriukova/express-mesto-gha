@@ -1,8 +1,8 @@
 const Card = require("../models/card");
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
-const errorMessageWrongData = 'Переданы некорректные данные при создании карточки';
-const errorMessageWrongId = 'Карточка с указанным _id не найдена';
+const errorMessageWrongData = 'Переданы некорректные данные';
+const errorMessageNotFound = 'Карточка с указанным _id не найдена';
 
 const getCards = (req, res) => {
   console.log("getCards req.user._id = "+req.user._id);
@@ -53,11 +53,14 @@ const likeCard = (req, res) => {
     {new: true}
   )
     .populate(['owner','likes'])
-    .then(card => res.send(card))
+    .then(card => {
+      if (!card) return res.status(404).send({message: errorMessageNotFound});
+      return res.send(card);
+    })
     .catch((err) => {
       console.log("likeCard error: "+err.name+' - '+err.message);
       if (err.name === "CastError") {
-        return res.status(404).send({message: errorMessageWrongId});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });
@@ -70,11 +73,14 @@ const disLikeCard = (req, res) => {
     {new: true}
   )
     .populate(['owner','likes'])
-    .then(card => res.send(card))
+    .then(card => {
+      if (!card) return res.status(404).send({message: errorMessageNotFound});
+      return res.send(card);
+    })
     .catch((err) => {
       console.log("disLikeCard error: "+err.name+' - '+err.message);
       if (err.name === "CastError") {
-        return res.status(404).send({message: errorMessageWrongId});
+        return res.status(400).send({message: errorMessageWrongData});
       }
       return res.status(500).send({message: errorMessageGeneralError});
     });
