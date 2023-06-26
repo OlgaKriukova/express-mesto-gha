@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
+
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
@@ -26,10 +28,16 @@ const getUserById = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const newUserData = req.body;
-
-  User.create(newUserData)
-    .then((newUser) => res.status(201).send(newUser))
+  const {name, about, avatar, email, password} = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: errorMessageWrongData });
