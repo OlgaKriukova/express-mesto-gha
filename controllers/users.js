@@ -39,8 +39,12 @@ const createUser = (req, res) => {
     }))
     .then((user) => res.status(201).send(user))
     .catch((err) => {
+      console.log(`err.code: ${err.code}`);
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: errorMessageWrongData });
+      }
+      if (err.code === 11000) {
+        return res.status(409).send({ message: 'Пользователь уже существует' });
       }
       return res.status(500).send({ message: errorMessageGeneralError });
     });
