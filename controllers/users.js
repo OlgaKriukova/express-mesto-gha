@@ -5,8 +5,12 @@ const User = require('../models/user');
 const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
 const errorMessageNotFound = 'Пользователь по указанному _id не найден';
+const errorMessageAlreadyExists = 'Пользователь уже существует';
+const errorMessageNotMatched = 'Неправильные почта или пароль';
 
 const getUsers = (req, res) => {
+  console.log('--getUsers--');
+  console.log(req.user);
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
@@ -31,24 +35,37 @@ const getUserById = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body);
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new Error(errorMessageNotMatched));
       }
 
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
+      bcrypt.compare(password, user.password, (err, matched) => {
+        // result == true
+        if (!matched) {
+          return res.status(403).send({ message: 'Неправильный пароль' });
+        }
 
-      // аутентификация успешна
-      res.send({ message: 'Всё верно!' });
+        return res.status(200).send({
+          token: jwt.sign({ _id: user._id }, 'my-super-secret-key-AA9u$u2MM', { expiresIn: '7d' }),
+        });
+      });
+
+      // return bcrypt.compare(password, user.password);
     })
+    // .then((matched) => {
+    //   console.log('matched');
+    //   console.log(matched);
+    //   if (!matched) {
+    //     return Promise.reject(new Error(errorMessageNotMatched));
+    //   }
+    //   return res.send({
+    //     token: jwt.sign({ _id: user._id }, 'my-super-secret-key-AA9u$u2MM', { expiresIn: '7d' }),
+    //   });
+    // })
     .catch((err) => {
       res
         .status(401)
@@ -68,14 +85,19 @@ const createUser = (req, res) => {
       email,
       password: hash,
     }))
-    .then((user) => res.status(201).send(user))
+    .then((user) => {
+      // eslint-disable-next-line no-param-reassign
+      // delete user.password;
+      console.log({ password, ...user });
+      return res.status(201).send(user);
+    })
     .catch((err) => {
       console.log(`err.code: ${err.code}`);
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: errorMessageWrongData });
       }
       if (err.code === 11000) {
-        return res.status(409).send({ message: 'Пользователь уже существует' });
+        return res.status(409).send({ message: errorMessageAlreadyExists });
       }
       return res.status(500).send({ message: errorMessageGeneralError });
     });

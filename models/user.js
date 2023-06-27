@@ -6,19 +6,19 @@ const { Schema } = mongoose;
 const userSchema = new mongoose.Schema(
   {
     name: {
-      type: String,
+      type: Schema.Types.String,
       default: 'Жак-Ив Кусто',
       minlength: 2,
       maxlength: 30,
     },
     about: {
-      type: String,
+      type: Schema.Types.String,
       default: 'Исследователь',
       minlength: 2,
       maxlength: 30,
     },
     avatar: {
-      type: String,
+      type: Schema.Types.String,
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     },
     email: {
@@ -31,8 +31,9 @@ const userSchema = new mongoose.Schema(
       },
     },
     password: {
-      type: String,
+      type: Schema.Types.String,
       required: true,
+      select: false,
     },
   },
   {

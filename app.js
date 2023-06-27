@@ -35,6 +35,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// роут для логина и регистрации, не требуют авторизации
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+// авторизация
+app.use(auth);
+
 app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
 
@@ -46,16 +53,3 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
 });
-
-// роут для логина и регистрации, не требуют авторизации
-app.post('/signin', login);
-app.post('/signup', createUser);
-
-// авторизация
-app.use(auth);
-
-// роуты, которым авторизация нужна
-app.use('/cards', require('./routes/cards'));
-
-// сначала вызовется auth, а затем,
-// если авторизация успешна, createCard
