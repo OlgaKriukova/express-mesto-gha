@@ -11,6 +11,9 @@ const { PORT = 3000 } = process.env;
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+
 const app = express();
 
 app.use(helmet());
@@ -43,3 +46,16 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
 });
+
+// роут для логина и регистрации, не требуют авторизации
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+// авторизация
+app.use(auth);
+
+// роуты, которым авторизация нужна
+app.use('/cards', require('./routes/cards'));
+
+// сначала вызовется auth, а затем,
+// если авторизация успешна, createCard

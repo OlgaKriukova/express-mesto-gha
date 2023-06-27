@@ -1,7 +1,6 @@
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const User = require('../models/user');
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
@@ -28,6 +27,8 @@ const getUserById = (req, res) => {
     });
 };
 
+// контроллер login без токена и _id
+
 const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -53,10 +54,12 @@ const login = (req, res) => {
         .status(401)
         .send({ message: err.message });
     });
-}; 
+};
 
 const createUser = (req, res) => {
-  const {name, about, avatar, email, password} = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name,
