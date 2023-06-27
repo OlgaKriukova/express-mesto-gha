@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
@@ -26,6 +27,33 @@ const getUserById = (req, res) => {
       return res.status(500).send({ message: errorMessageGeneralError });
     });
 };
+
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        // хеши не совпали — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+
+      // аутентификация успешна
+      res.send({ message: 'Всё верно!' });
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+}; 
 
 const createUser = (req, res) => {
   const {name, about, avatar, email, password} = req.body;
@@ -90,6 +118,7 @@ const updateUserAvatar = (req, res) => {
 module.exports = {
   getUsers,
   getUserById,
+  login,
   createUser,
   updateUser,
   updateUserAvatar,
