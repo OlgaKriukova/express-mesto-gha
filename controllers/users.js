@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const user = require('../models/user');
 const User = require('../models/user');
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
@@ -30,6 +31,14 @@ const getUserById = (req, res) => {
       return res.status(500).send({ message: errorMessageGeneralError });
     });
 };
+
+//контроллер для получения информации о пользователе
+
+const getUserMe = (req, res) => {
+  User.find({})
+  .then(user => res.send({ data: user }))
+  .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
+}
 
 // контроллер login без токена и _id
 
@@ -143,6 +152,7 @@ const updateUserAvatar = (req, res) => {
 module.exports = {
   getUsers,
   getUserById,
+  getUserMe,
   login,
   createUser,
   updateUser,

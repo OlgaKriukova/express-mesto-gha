@@ -28,12 +28,12 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
     console.log('connected to db');
   });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '648c6c8547fe7359010a4e19',
-  };
-  next();
-});
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '648c6c8547fe7359010a4e19',
+//   };
+//   next();
+// });
 
 // роут для логина и регистрации, не требуют авторизации
 app.post('/signin', login);
