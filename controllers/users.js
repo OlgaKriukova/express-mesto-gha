@@ -1,6 +1,5 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const user = require('../models/user');
 const User = require('../models/user');
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
@@ -18,6 +17,7 @@ const getUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
+  console.log('-getUserById-');
   User.findById(req.params.userId)
     .orFail(new Error(errorMessageNotFound))
     .then((user) => res.status(200).send(user))
@@ -32,28 +32,28 @@ const getUserById = (req, res) => {
     });
 };
 
-//контроллер для получения информации о пользователе
+// контроллер для получения информации о пользователе
 
 const getUserMe = (req, res) => {
-  User.find({})
-  .then(user => res.send({ data: user }))
-  .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
-}
+  User.findById(req.user._id)
+    .then((user) => res.status(201).send(user))
+    .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
+};
 
 // контроллер login без токена и _id
 
 const login = (req, res) => {
+  console.log('-login-');
   const { email, password } = req.body;
   console.log(req.body);
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error(errorMessageNotMatched));
+        //return Promise.reject(new Error(errorMessageNotMatched));
+        return res.status(403).send({ message: errorMessageNotMatched });
       }
-
       bcrypt.compare(password, user.password, (err, matched) => {
-        // result == true
         if (!matched) {
           return res.status(403).send({ message: 'Неправильный пароль' });
         }
@@ -62,19 +62,7 @@ const login = (req, res) => {
           token: jwt.sign({ _id: user._id }, 'my-super-secret-key-AA9u$u2MM', { expiresIn: '7d' }),
         });
       });
-
-      // return bcrypt.compare(password, user.password);
     })
-    // .then((matched) => {
-    //   console.log('matched');
-    //   console.log(matched);
-    //   if (!matched) {
-    //     return Promise.reject(new Error(errorMessageNotMatched));
-    //   }
-    //   return res.send({
-    //     token: jwt.sign({ _id: user._id }, 'my-super-secret-key-AA9u$u2MM', { expiresIn: '7d' }),
-    //   });
-    // })
     .catch((err) => {
       res
         .status(401)
@@ -83,6 +71,7 @@ const login = (req, res) => {
 };
 
 const createUser = (req, res) => {
+  console.log('-createUser-');
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -113,6 +102,7 @@ const createUser = (req, res) => {
 };
 
 const updateUser = (req, res) => {
+  console.log('-updateUser-');
   const newUserData = req.body;
 
   User.findByIdAndUpdate(req.user._id, newUserData, {
@@ -130,6 +120,7 @@ const updateUser = (req, res) => {
 };
 
 const updateUserAvatar = (req, res) => {
+  console.log('-updateUserAvatar-');
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,

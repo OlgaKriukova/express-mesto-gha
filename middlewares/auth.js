@@ -1,10 +1,9 @@
 const jwt = require('jsonwebtoken');
 
+// eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
   // достаём авторизационный заголовок
   const { authorization } = req.headers;
-  console.log('authorization');
-  console.log(authorization);
 
   // убеждаемся, что он есть или начинается с Bearer
   if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -14,8 +13,6 @@ module.exports = (req, res, next) => {
   }
   // извлечём токен
   const token = authorization.replace('Bearer ', '');
-  console.log('token');
-  console.log(token);
   let payload;
 
   try {

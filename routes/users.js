@@ -5,9 +5,9 @@ const {
 
 router.get('/', getUsers);
 
-router.get('/:userId', getUserById);
-
 router.get('/me', getUserMe);
+
+router.get('/:userId', getUserById);
 
 router.patch('/me', updateUser);
 
