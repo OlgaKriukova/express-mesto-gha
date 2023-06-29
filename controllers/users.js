@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const errorHandler = require('../middlewares/errorHandler');
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
@@ -13,7 +14,7 @@ const getUsers = (req, res) => {
   console.log(req.user);
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
+    .catch(() => errorHandler);
 };
 
 const getUserById = (req, res) => {
@@ -28,7 +29,7 @@ const getUserById = (req, res) => {
       if (err.name === 'CastError') {
         return res.status(400).send({ message: errorMessageWrongData });
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      return errorHandler;
     });
 };
 
@@ -37,7 +38,7 @@ const getUserById = (req, res) => {
 const getUserMe = (req, res) => {
   User.findById(req.user._id)
     .then((user) => res.status(201).send(user))
-    .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
+    .catch(() => errorHandler);
 };
 
 // контроллер login без токена и _id
@@ -97,7 +98,7 @@ const createUser = (req, res) => {
       if (err.code === 11000) {
         return res.status(409).send({ message: errorMessageAlreadyExists });
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      return errorHandler;
     });
 };
 
@@ -115,7 +116,7 @@ const updateUser = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: errorMessageWrongData });
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      return errorHandler;
     });
 };
 
@@ -136,7 +137,7 @@ const updateUserAvatar = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: errorMessageWrongData });
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      return errorHandler;
     });
 };
 
