@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotMatchedError = require('../errors/NotMatchedError');
 const NotFoundError = require('../errors/NotFoundError');
+const UniqueError = require('../errors/UniqueError');
 
 const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
@@ -38,7 +39,12 @@ const createUser = (req, res, next) => {
       _id: user._id,
       email: user.email,
     }))
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 11000) {
+        err = new UniqueError(errorMessageAlreadyExists);
+      }
+      next(err);
+    });
 };
 
 const getUsers = (req, res, next) => {
