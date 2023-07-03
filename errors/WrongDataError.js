@@ -1,6 +1,7 @@
 class WrongData extends Error {
   constructor(message) {
-    super(message);
+    const defaultMessage = 'Переданы некорректные данные';
+    super(message || defaultMessage);
     this.statusCode = 400;
   }
 }

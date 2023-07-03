@@ -1,7 +1,8 @@
 class UniqueError extends Error {
   constructor(message) {
-    super(message);
-    this.statusCode = 404;
+    const defaultMessage = 'Нарушена уникальность';
+    super(message || defaultMessage);
+    this.statusCode = 409;
   }
 }
 

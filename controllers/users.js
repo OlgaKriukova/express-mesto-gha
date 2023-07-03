@@ -5,10 +5,6 @@ const NotFoundError = require('../errors/NotFoundError');
 const UniqueError = require('../errors/UniqueError');
 const WrongDataError = require('../errors/WrongDataError');
 
-const errorMessageWrongData = 'Переданы некорректные данные';
-const errorMessageNotFound = 'Пользователь по указанному _id не найден';
-const errorMessageAlreadyExists = 'Пользователь уже существует';
-
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
@@ -43,10 +39,10 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       if (err.code === 11000) {
-        next(new UniqueError(errorMessageAlreadyExists));
+        next(new UniqueError());
       }
       next(err);
     });
@@ -60,7 +56,7 @@ const getUsers = (req, res, next) => {
 
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new NotFoundError(errorMessageNotFound))
+    .orFail(new NotFoundError())
     .then((user) => res.status(200).send(user))
     .catch(next);
 };
@@ -97,10 +93,10 @@ const updateUserAvatar = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       if (err.code === 11000) {
-        next(new UniqueError(errorMessageAlreadyExists));
+        next(new UniqueError());
       }
       next(err);
     });

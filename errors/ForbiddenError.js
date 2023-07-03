@@ -1,8 +1,9 @@
-class WrongData extends Error {
+class Forbidden extends Error {
   constructor(message) {
-    super(message);
-    this.statusCode = 400;
+    const defaultMessage = 'Нет доступа';
+    super(message || defaultMessage);
+    this.statusCode = 403;
   }
 }
 
-module.exports = WrongData;
+module.exports = Forbidden;

@@ -2,9 +2,7 @@ const Card = require('../models/card');
 
 const NotFoundError = require('../errors/NotFoundError');
 const WrongDataError = require('../errors/WrongDataError');
-
-const errorMessageWrongData = 'Переданы некорректные данные';
-const errorMessageNotFound = 'Карточка с указанным _id не найдена';
+const ForbiddenError = require('../errors/ForbiddenError');
 
 const getCards = (req, res, next) => {
   Card.find({})
@@ -23,27 +21,34 @@ const createCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       next(err);
     });
 };
 
 const delCard = (req, res, next) => {
-  Card.findOneAndDelete(
-    {
-      $and: [
-        { _id: req.params.cardId },
-        { owner: req.user._id },
-      ],
-    },
-  )
-    .orFail(new WrongDataError(errorMessageWrongData))
-    .populate(['owner', 'likes'])
-    .then((deletedCard) => res.status(200).send(deletedCard))
+  Card.findById(req.params.cardId)
+    .orFail(new WrongDataError())
+    .then((card) => {
+      if (card.owner._id !== req.user._id) {
+        throw new ForbiddenError();
+      }
+      Card.findOneAndDelete(
+        {
+          $and: [
+            { _id: req.params.cardId },
+            { owner: req.user._id },
+          ],
+        },
+      )
+        .orFail(new WrongDataError())
+        .populate(['owner', 'likes'])
+        .then((deletedCard) => res.status(200).send(deletedCard));
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       next(err);
     });
@@ -55,12 +60,12 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new WrongDataError(errorMessageWrongData))
+    .orFail(new WrongDataError())
     .populate(['owner', 'likes'])
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       next(err);
     });
@@ -72,12 +77,12 @@ const disLikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new NotFoundError(errorMessageNotFound))
+    .orFail(new NotFoundError())
     .populate(['owner', 'likes'])
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new WrongDataError(errorMessageWrongData));
+        next(new WrongDataError());
       }
       next(err);
     });
