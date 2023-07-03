@@ -1,14 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const NotMatchedError = require('../errors/NotMatchedError');
 const NotFoundError = require('../errors/NotFoundError');
 const UniqueError = require('../errors/UniqueError');
+const WrongDataError = require('../errors/WrongDataError');
 
-const errorMessageGeneralError = 'На сервере произошла ошибка';
 const errorMessageWrongData = 'Переданы некорректные данные';
 const errorMessageNotFound = 'Пользователь по указанному _id не найден';
-const errorMessageNotMatched = 'Неправильные почта или пароль';
 const errorMessageAlreadyExists = 'Пользователь уже существует';
 
 const login = (req, res, next) => {
@@ -27,6 +25,7 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
+
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name,
@@ -38,10 +37,16 @@ const createUser = (req, res, next) => {
     .then((user) => res.status(201).send({
       _id: user._id,
       email: user.email,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
     }))
     .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new WrongDataError(errorMessageWrongData));
+      }
       if (err.code === 11000) {
-        err = new UniqueError(errorMessageAlreadyExists);
+        next(new UniqueError(errorMessageAlreadyExists));
       }
       next(err);
     });
@@ -79,7 +84,6 @@ const updateUser = (req, res, next) => {
 };
 
 const updateUserAvatar = (req, res, next) => {
-  console.log('-updateUserAvatar-');
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -91,7 +95,15 @@ const updateUserAvatar = (req, res, next) => {
     },
   )
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new WrongDataError(errorMessageWrongData));
+      }
+      if (err.code === 11000) {
+        next(new UniqueError(errorMessageAlreadyExists));
+      }
+      next(err);
+    });
 };
 
 module.exports = {

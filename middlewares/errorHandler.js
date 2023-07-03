@@ -2,6 +2,10 @@ const errorMessageGeneralError = 'На сервере произошла оши�
 
 const errorHandler = (err, req, res, next) => {
   console.log('--- ERROR ---');
+  console.log(`err.name: ${err.name}`);
+  console.log(`err.code: ${err.code}`);
+  console.log(`err.message: ${err.message}`);
+
   console.log(err);
 
   if (err.statusCode) {

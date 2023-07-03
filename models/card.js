@@ -14,6 +14,12 @@ const cardSchema = new mongoose.Schema(
     link: {
       type: String,
       required: true,
+      validate: {
+        validator(v) {
+          return /^(https?:\/\/)(www\.)?([\w\.]+)\.([a-z]{2,6}\.?)(\/[\w\.]*)*\/?#.test(v);
+        },
+        message: (props) => `${props.value} is not a valid phone number!`,
+      },
     },
     owner: {
       type: ObjectId,

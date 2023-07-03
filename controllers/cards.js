@@ -1,17 +1,19 @@
 const Card = require('../models/card');
 
-const errorMessageGeneralError = 'На сервере произошла ошибка';
+const NotFoundError = require('../errors/NotFoundError');
+const WrongDataError = require('../errors/WrongDataError');
+
 const errorMessageWrongData = 'Переданы некорректные данные';
 const errorMessageNotFound = 'Карточка с указанным _id не найдена';
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate('owner')
     .then((cards) => res.status(200).send(cards))
-    .catch(() => res.status(500).send({ message: errorMessageGeneralError }));
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const newCardData = req.body;
   newCardData.owner = req.user._id;
   Card.create(newCardData)
@@ -21,65 +23,63 @@ const createCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: errorMessageWrongData });
+        next(new WrongDataError(errorMessageWrongData));
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      next(err);
     });
 };
 
-const delCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail(new Error(errorMessageNotFound))
+const delCard = (req, res, next) => {
+  Card.findOneAndDelete(
+    {
+      $and: [
+        { _id: req.params.cardId },
+        { owner: req.user._id },
+      ],
+    },
+  )
+    .orFail(new WrongDataError(errorMessageWrongData))
     .populate(['owner', 'likes'])
-    .then((card) => res.send(card))
+    .then((deletedCard) => res.status(200).send(deletedCard))
     .catch((err) => {
-      if (err.message === errorMessageNotFound) {
-        return res.status(404).send({ message: errorMessageNotFound });
-      }
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: errorMessageWrongData });
+        next(new WrongDataError(errorMessageWrongData));
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      next(err);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error(errorMessageNotFound))
+    .orFail(new WrongDataError(errorMessageWrongData))
     .populate(['owner', 'likes'])
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.message === errorMessageNotFound) {
-        return res.status(404).send({ message: errorMessageNotFound });
-      }
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: errorMessageWrongData });
+        next(new WrongDataError(errorMessageWrongData));
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      next(err);
     });
 };
 
-const disLikeCard = (req, res) => {
+const disLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error(errorMessageNotFound))
+    .orFail(new NotFoundError(errorMessageNotFound))
     .populate(['owner', 'likes'])
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.message === errorMessageNotFound) {
-        return res.status(404).send({ message: errorMessageNotFound });
-      }
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: errorMessageWrongData });
+        next(new WrongDataError(errorMessageWrongData));
       }
-      return res.status(500).send({ message: errorMessageGeneralError });
+      next(err);
     });
 };
 
