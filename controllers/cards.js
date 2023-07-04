@@ -33,7 +33,6 @@ const delCard = (req, res, next) => {
     .then((card) => {
       // eslint-disable-next-line eqeqeq
       if (card.owner._id != req.user._id) {
-        console.log(`card.owner._id: ${card.owner._id} !== req.user._id: ${req.user._id}`);
         throw new ForbiddenError();
       }
       Card.findOneAndDelete(
