@@ -40,11 +40,11 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new WrongDataError());
-      }
-      if (err.code === 11000) {
+      } else if (err.code === 11000) {
         next(new UniqueError());
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -94,11 +94,9 @@ const updateUserAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new WrongDataError());
+      } else {
+        next(err);
       }
-      if (err.code === 11000) {
-        next(new UniqueError());
-      }
-      next(err);
     });
 };
 
