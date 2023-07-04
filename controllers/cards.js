@@ -29,9 +29,11 @@ const createCard = (req, res, next) => {
 
 const delCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(new WrongDataError())
+    .orFail(new NotFoundError())
     .then((card) => {
-      if (card.owner._id !== req.user._id) {
+      // eslint-disable-next-line eqeqeq
+      if (card.owner._id != req.user._id) {
+        console.log(`card.owner._id: ${card.owner._id} !== req.user._id: ${req.user._id}`);
         throw new ForbiddenError();
       }
       Card.findOneAndDelete(
@@ -42,7 +44,7 @@ const delCard = (req, res, next) => {
           ],
         },
       )
-        .orFail(new WrongDataError())
+        .orFail(new NotFoundError())
         .populate(['owner', 'likes'])
         .then((deletedCard) => res.status(200).send(deletedCard));
     })
@@ -60,7 +62,7 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new WrongDataError())
+    .orFail(new NotFoundError())
     .populate(['owner', 'likes'])
     .then((card) => res.send(card))
     .catch((err) => {

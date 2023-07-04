@@ -63,7 +63,7 @@ const getUserById = (req, res, next) => {
 
 const getUserMe = (req, res, next) => {
   User.findById(req.user._id)
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(200).send(user))
     .catch(next);
 };
 
