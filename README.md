@@ -2,7 +2,7 @@
 # Проект Mesto фронтенд + бэкенд
 https://github.com/OlgaKriukova/express-mesto-gha
 
-## Директории
+## Директории1
 
 `/routes` — папка с файлами роутера  
 `/controllers` — папка с файлами контроллеров пользователя и карточки   
